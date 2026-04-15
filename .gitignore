@@ -1,0 +1,41 @@
+# ============================================
+# GESTIONCLIENT - Monorepo .gitignore
+# ============================================
+
+# ===== Secrets =====
+.env
+.env.local
+.env.*.local
+
+# ===== Backend (Java / Spring Boot) =====
+gestionclient-backend/target/
+gestionclient-backend/.idea/
+gestionclient-backend/*.iml
+gestionclient-backend/*.iws
+gestionclient-backend/*.ipr
+gestionclient-backend/.settings/
+gestionclient-backend/.classpath
+gestionclient-backend/.project
+gestionclient-backend/.factorypath
+gestionclient-backend/.apt_generated
+
+# ===== Frontend (Next.js / Node) =====
+gestionclient-frontend/node_modules/
+gestionclient-frontend/.next/
+gestionclient-frontend/out/
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== Logs =====
+*.log
