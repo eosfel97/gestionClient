@@ -8,6 +8,7 @@ import com.gestionclient.entity.User;
 import com.gestionclient.enums.Role;
 import com.gestionclient.enums.StatutClient;
 import com.gestionclient.service.ClientService;
+import com.gestionclient.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,10 +17,15 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 @RestController
 @RequestMapping("/api/clients")
 @RequiredArgsConstructor
 public class ClientController {
+
+    private static final Set<String> CHAMPS_TRI = Set.of(
+            "nom", "prenom", "entreprise", "email", "dateCreation", "statut");
 
     private final ClientService clientService;
 
@@ -64,6 +70,7 @@ public class ClientController {
             @AuthenticationPrincipal User currentUser) {
 
         taille = Math.min(taille, 100);
+        tri = PaginationUtil.validerTri(tri, CHAMPS_TRI, "dateCreation");
         PageResponse<ClientResponse> response;
 
         if (currentUser.getRole() == Role.ADMIN) {
@@ -89,6 +96,7 @@ public class ClientController {
             @AuthenticationPrincipal User currentUser) {
 
         taille = Math.min(taille, 100);
+        tri = PaginationUtil.validerTri(tri, CHAMPS_TRI, "dateCreation");
         PageResponse<ClientResponse> response = clientService.filtrerParStatut(statut, currentUser, page, taille, tri, direction);
         return ResponseEntity.ok(response);
     }
@@ -107,6 +115,7 @@ public class ClientController {
             @AuthenticationPrincipal User currentUser) {
 
         taille = Math.min(taille, 100);
+        tri = PaginationUtil.validerTri(tri, CHAMPS_TRI, "nom");
         PageResponse<ClientResponse> response = clientService.rechercher(
                 recherche, currentUser, page, taille, tri, direction);
         return ResponseEntity.ok(response);

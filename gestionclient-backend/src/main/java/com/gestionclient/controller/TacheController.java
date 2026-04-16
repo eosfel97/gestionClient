@@ -7,6 +7,7 @@ import com.gestionclient.dto.TacheResponse;
 import com.gestionclient.entity.User;
 import com.gestionclient.enums.StatutTache;
 import com.gestionclient.service.TacheService;
+import com.gestionclient.util.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,11 +18,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/taches")
 @RequiredArgsConstructor
 public class TacheController {
+
+    private static final Set<String> CHAMPS_TRI = Set.of(
+            "titre", "dateEcheance", "dateRappel", "priorite", "statut", "dateCreation");
 
     private final TacheService tacheService;
 
@@ -63,6 +68,7 @@ public class TacheController {
             @AuthenticationPrincipal User currentUser) {
 
         taille = Math.min(taille, 100);
+        tri = PaginationUtil.validerTri(tri, CHAMPS_TRI, "dateEcheance");
         PageResponse<TacheResponse> response = tacheService.lister(currentUser, page, taille, tri, direction);
         return ResponseEntity.ok(response);
     }
@@ -116,6 +122,7 @@ public class TacheController {
             @RequestParam(defaultValue = "7") int jours,
             @AuthenticationPrincipal User currentUser) {
 
+        jours = Math.min(Math.max(1, jours), 365);
         List<TacheResponse> response = tacheService.tachesAVenir(jours, currentUser);
         return ResponseEntity.ok(response);
     }

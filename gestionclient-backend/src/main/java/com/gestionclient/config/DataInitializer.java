@@ -9,6 +9,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -18,31 +19,26 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String @NonNull ... args) {
+        String adminEmail = System.getenv("INIT_ADMIN_EMAIL");
+        String adminPassword = System.getenv("INIT_ADMIN_PASSWORD");
 
-        if (userRepository.findByEmail("admin@gestionclient.com").isEmpty()) {
+        if (adminEmail == null || adminPassword == null) {
+            log.warn("Variables INIT_ADMIN_EMAIL / INIT_ADMIN_PASSWORD non définies — aucun compte admin initialisé.");
+            return;
+        }
+
+        if (userRepository.findByEmail(adminEmail).isEmpty()) {
             User admin = User.builder()
                     .nom("Admin")
                     .prenom("Super")
-                    .email("admin@gestionclient.com")
-                    .password(passwordEncoder.encode("admin123"))
+                    .email(adminEmail)
+                    .password(passwordEncoder.encode(adminPassword))
                     .role(Role.ADMIN)
                     .actif(true)
                     .build();
 
             userRepository.save(admin);
-            log.info("Utilisateur admin par défaut créé.");
-        }
-        if (userRepository.findByEmail("commercial@gestionclient.com").isEmpty()) {
-            User commercial = User.builder()
-                    .nom("Dupont")
-                    .prenom("Jean")
-                    .email("commercial@gestionclient.com")
-                    .password(passwordEncoder.encode("commercial123"))
-                    .role(Role.COMMERCIAL)
-                    .actif(true)
-                    .build();
-            userRepository.save(commercial);
-            log.info("Utilisateur commercial par défaut créé.");
+            log.info("Compte administrateur initialisé.");
         }
     }
 }

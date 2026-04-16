@@ -50,7 +50,7 @@ public class AuthController {
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
             loginAttemptService.registerFailedAttempt(ip);
-            log.warn("Échec de connexion pour email={} depuis IP={}", request.getEmail(), ip);
+            log.warn("Échec de connexion depuis IP={}", ip);
             throw e;
         }
     }
