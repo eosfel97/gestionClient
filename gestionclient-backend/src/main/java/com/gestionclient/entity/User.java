@@ -25,6 +25,8 @@ import java.util.List;
 @Builder
 public class User implements UserDetails {
 
+    private static final String ROLE_PREFIX = "ROLE_";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -78,7 +80,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return List.of(new SimpleGrantedAuthority(ROLE_PREFIX + role.name()));
     }
 
     @Override

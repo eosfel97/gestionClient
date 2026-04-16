@@ -14,11 +14,10 @@ import com.gestionclient.repository.ClientRepository;
 import com.gestionclient.repository.InteractionRepository;
 import com.gestionclient.repository.TacheRepository;
 import com.gestionclient.repository.UserRepository;
+import com.gestionclient.util.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,14 +38,14 @@ public class ClientService {
         }
 
         Client client = Client.builder()
-                .nom(request.getNom())
-                .prenom(request.getPrenom())
-                .entreprise(request.getEntreprise())
+                .nom(request.getNom().trim())
+                .prenom(request.getPrenom().trim())
+                .entreprise(request.getEntreprise() != null ? request.getEntreprise().trim() : null)
                 .email(request.getEmail())
-                .telephone(request.getTelephone())
-                .adresse(request.getAdresse())
+                .telephone(request.getTelephone() != null ? request.getTelephone().trim() : null)
+                .adresse(request.getAdresse() != null ? request.getAdresse().trim() : null)
                 .statut(request.getStatut() != null ? request.getStatut() : StatutClient.PROSPECT)
-                .notes(request.getNotes())
+                .notes(request.getNotes() != null ? request.getNotes().trim() : null)
                 .build();
 
         if (request.getAssigneAId() != null) {
@@ -125,13 +124,13 @@ public class ClientService {
             throw new EmailDejaUtiliseException(request.getEmail());
         }
 
-        client.setNom(request.getNom());
-        client.setPrenom(request.getPrenom());
-        client.setEntreprise(request.getEntreprise());
+        client.setNom(request.getNom().trim());
+        client.setPrenom(request.getPrenom().trim());
+        client.setEntreprise(request.getEntreprise() != null ? request.getEntreprise().trim() : null);
         client.setEmail(request.getEmail());
-        client.setTelephone(request.getTelephone());
-        client.setAdresse(request.getAdresse());
-        client.setNotes(request.getNotes());
+        client.setTelephone(request.getTelephone() != null ? request.getTelephone().trim() : null);
+        client.setAdresse(request.getAdresse() != null ? request.getAdresse().trim() : null);
+        client.setNotes(request.getNotes() != null ? request.getNotes().trim() : null);
 
         if (request.getStatut() != null) {
             client.setStatut(request.getStatut());
@@ -184,10 +183,7 @@ public class ClientService {
 
     // Utilitaires
     private Pageable creerPageable(int page, int taille, String tri, String direction) {
-        Sort sort = direction.equalsIgnoreCase("desc")
-                ? Sort.by(tri).descending()
-                : Sort.by(tri).ascending();
-        return PageRequest.of(page, taille, sort);
+        return PaginationUtil.creerPageable(page, taille, tri, direction);
     }
 
     private PageResponse<ClientResponse> toPageResponse(Page<Client> page) {
@@ -203,10 +199,11 @@ public class ClientService {
     }
 
     private void verifierAcces(Client client, User currentUser) {
-        if (currentUser.getRole() != Role.ADMIN
-                && !client.getAssigneA().getId().equals(currentUser.getId())) {
-            throw new org.springframework.security.access.AccessDeniedException(
-                    "Vous n'avez pas accès à ce client");
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (client.getAssigneA() == null || !client.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new org.springframework.security.access.AccessDeniedException(
+                        "Vous n'avez pas accès à ce client");
+            }
         }
     }
 }

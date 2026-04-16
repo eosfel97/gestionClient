@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +72,14 @@ public class AdminController {
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
 
-        Role nouveauRole = Role.valueOf(body.get("role"));
+        String roleStr = body.get("role");
+        Role nouveauRole;
+        try {
+            nouveauRole = Role.valueOf(roleStr != null ? roleStr.toUpperCase() : "");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Rôle invalide. Valeurs acceptées : " + Arrays.toString(Role.values()));
+        }
         UserResponse response = adminService.changerRole(id, nouveauRole);
         return ResponseEntity.ok(response);
     }

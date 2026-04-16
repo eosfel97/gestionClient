@@ -3,6 +3,7 @@ package com.gestionclient.exception;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
 
@@ -75,6 +77,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Argument invalide, ex: valeur d'enum incorrecte (400)
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    /**
+     * Trop de requêtes (429)
+     */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyRequests(TooManyRequestsException ex) {
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    }
+
+    /**
      * Accès refusé (403)
      */
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
@@ -88,8 +106,9 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Erreur interne non gérée", ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Une erreur interne est survenue : " + ex.getMessage());
+                "Une erreur interne est survenue. Veuillez contacter l'administrateur.");
     }
     
 
@@ -98,6 +117,7 @@ public class GlobalExceptionHandler {
                 .status(status.value())
                 .message(message)
                 .timestamp(LocalDateTime.now())
+                .errors(null)
                 .build();
         return new ResponseEntity<>(response, status);
     }

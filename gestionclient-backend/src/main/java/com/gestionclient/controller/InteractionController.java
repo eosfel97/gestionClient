@@ -58,6 +58,7 @@ public class InteractionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int taille) {
 
+        taille = Math.min(taille, 100);
         PageResponse<InteractionResponse> response =
                 interactionService.listerParClient(clientId, page, taille);
         return ResponseEntity.ok(response);
@@ -74,6 +75,7 @@ public class InteractionController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int taille) {
 
+        taille = Math.min(taille, 100);
         PageResponse<InteractionResponse> response =
                 interactionService.listerParClientEtType(clientId, type, page, taille);
         return ResponseEntity.ok(response);
@@ -98,9 +100,10 @@ public class InteractionController {
     @PutMapping("/{id}")
     public ResponseEntity<InteractionResponse> mettreAJour(
             @PathVariable Long id,
-            @Valid @RequestBody InteractionRequest request) {
+            @Valid @RequestBody InteractionRequest request,
+            @AuthenticationPrincipal User currentUser) {
 
-        InteractionResponse response = interactionService.mettreAJour(id, request);
+        InteractionResponse response = interactionService.mettreAJour(id, request, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -109,8 +112,10 @@ public class InteractionController {
      * Supprimer une interaction
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimer(@PathVariable Long id) {
-        interactionService.supprimer(id);
+    public ResponseEntity<Void> supprimer(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser) {
+        interactionService.supprimer(id, currentUser);
         return ResponseEntity.noContent().build();
     }
 }

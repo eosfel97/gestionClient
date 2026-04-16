@@ -30,7 +30,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             userRepository.save(admin);
-            log.info("Utilisateur admin créé : admin@gestionclient.com / admin123");
+            log.info("Utilisateur admin par défaut créé.");
         }
         if (userRepository.findByEmail("commercial@gestionclient.com").isEmpty()) {
             User commercial = User.builder()
@@ -42,7 +42,7 @@ public class DataInitializer implements CommandLineRunner {
                     .actif(true)
                     .build();
             userRepository.save(commercial);
-            log.info("Utilisateur commercial créé : commercial@gestionclient.com / commercial123");
+            log.info("Utilisateur commercial par défaut créé.");
         }
     }
 }

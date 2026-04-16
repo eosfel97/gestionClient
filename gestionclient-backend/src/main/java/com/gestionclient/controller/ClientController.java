@@ -63,6 +63,7 @@ public class ClientController {
             @RequestParam(defaultValue = "desc") String direction,
             @AuthenticationPrincipal User currentUser) {
 
+        taille = Math.min(taille, 100);
         PageResponse<ClientResponse> response;
 
         if (currentUser.getRole() == Role.ADMIN) {
@@ -87,6 +88,7 @@ public class ClientController {
             @RequestParam(defaultValue = "desc") String direction,
             @AuthenticationPrincipal User currentUser) {
 
+        taille = Math.min(taille, 100);
         PageResponse<ClientResponse> response = clientService.filtrerParStatut(statut, currentUser, page, taille, tri, direction);
         return ResponseEntity.ok(response);
     }
@@ -104,6 +106,7 @@ public class ClientController {
             @RequestParam(defaultValue = "asc") String direction,
             @AuthenticationPrincipal User currentUser) {
 
+        taille = Math.min(taille, 100);
         PageResponse<ClientResponse> response = clientService.rechercher(
                 recherche, currentUser, page, taille, tri, direction);
         return ResponseEntity.ok(response);

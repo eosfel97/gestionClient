@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtService {
 
     @Value("${application.security.jwt.secret-key}")
@@ -22,6 +25,19 @@ public class JwtService {
 
     @Value("${application.security.jwt.expiration}")
     private long jwtExpiration;
+
+    @PostConstruct
+    public void validateSecretKey() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException("La clé JWT (application.security.jwt.secret-key) doit être configurée");
+        }
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        if (keyBytes.length < 64) {
+            throw new IllegalStateException(
+                "La clé JWT doit faire au minimum 512 bits (64 octets). Actuelle : " + keyBytes.length * 8 + " bits"
+            );
+        }
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

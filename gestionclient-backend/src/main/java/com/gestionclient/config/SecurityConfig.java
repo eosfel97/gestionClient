@@ -28,6 +28,15 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
+    /*
+     * Modèle d'autorisation :
+     *   - ADMIN   : accès complet — tous les clients, utilisateurs, statistiques, suppressions
+     *   - COMMERCIAL : accès restreint à ses propres clients, interactions et tâches uniquement
+     *   - Public  : /api/auth/**, /actuator/health
+     *
+     * Les contrôles d'accès métier sont également appliqués au niveau service
+     * (InteractionService, TacheService, ClientService) pour une défense en profondeur.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -36,6 +45,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/clients/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

@@ -12,6 +12,7 @@ import com.gestionclient.enums.TypeInteraction;
 import com.gestionclient.exception.ResourceNotFoundException;
 import com.gestionclient.repository.ClientRepository;
 import com.gestionclient.repository.InteractionRepository;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +36,12 @@ public class InteractionService {
         Client client = clientRepository.findById(request.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client", request.getClientId()));
 
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (client.getAssigneA() == null || !client.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous n'avez pas accès à ce client");
+            }
+        }
+
         Interaction interaction = Interaction.builder()
                 .type(request.getType())
                 .sujet(request.getSujet())
@@ -49,6 +56,7 @@ public class InteractionService {
 
 
 
+    @Transactional(readOnly = true)
     public InteractionResponse trouverParId(Long id) {
         Interaction interaction = interactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Interaction", id));
@@ -65,7 +73,7 @@ public class InteractionService {
             throw new ResourceNotFoundException("Client", clientId);
         }
 
-        Pageable pageable = PageRequest.of(page, taille);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(taille, 100));
         Page<Interaction> pageInteractions =
                 interactionRepository.findByClientIdOrderByDateInteractionDesc(clientId, pageable);
         return toPageResponse(pageInteractions);
@@ -77,7 +85,7 @@ public class InteractionService {
     @Transactional(readOnly = true)
     public PageResponse<InteractionResponse> listerParClientEtType(Long clientId, TypeInteraction type,
                                                                    int page, int taille) {
-        Pageable pageable = PageRequest.of(page, taille);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(taille, 100));
         Page<Interaction> pageInteractions =
                 interactionRepository.findByClientIdAndType(clientId, type, pageable);
         return toPageResponse(pageInteractions);
@@ -102,9 +110,15 @@ public class InteractionService {
 
 
     @Transactional
-    public InteractionResponse mettreAJour(Long id, InteractionRequest request) {
+    public InteractionResponse mettreAJour(Long id, InteractionRequest request, User currentUser) {
         Interaction interaction = interactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Interaction", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (interaction.getAuteur() == null || !interaction.getAuteur().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez modifier que vos propres interactions");
+            }
+        }
 
         interaction.setType(request.getType());
         interaction.setSujet(request.getSujet());
@@ -124,10 +138,16 @@ public class InteractionService {
 
 
     @Transactional
-    public void supprimer(Long id) {
-        if (!interactionRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Interaction", id);
+    public void supprimer(Long id, User currentUser) {
+        Interaction interaction = interactionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Interaction", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (interaction.getAuteur() == null || !interaction.getAuteur().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez supprimer que vos propres interactions");
+            }
         }
+
         interactionRepository.deleteById(id);
     }
 

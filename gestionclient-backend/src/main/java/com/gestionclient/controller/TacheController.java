@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,7 @@ public class TacheController {
             @RequestParam(defaultValue = "asc") String direction,
             @AuthenticationPrincipal User currentUser) {
 
+        taille = Math.min(taille, 100);
         PageResponse<TacheResponse> response = tacheService.lister(currentUser, page, taille, tri, direction);
         return ResponseEntity.ok(response);
     }
@@ -74,6 +76,7 @@ public class TacheController {
             @RequestParam(defaultValue = "20") int taille,
             @AuthenticationPrincipal User currentUser) {
 
+        taille = Math.min(taille, 100);
         PageResponse<TacheResponse> response = tacheService.listerParStatut(statut, currentUser, page, taille);
         return ResponseEntity.ok(response);
     }
@@ -120,9 +123,10 @@ public class TacheController {
     @PutMapping("/{id}")
     public ResponseEntity<TacheResponse> mettreAJour(
             @PathVariable Long id,
-            @Valid @RequestBody TacheRequest request) {
+            @Valid @RequestBody TacheRequest request,
+            @AuthenticationPrincipal User currentUser) {
 
-        TacheResponse response = tacheService.mettreAJour(id, request);
+        TacheResponse response = tacheService.mettreAJour(id, request, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -134,10 +138,18 @@ public class TacheController {
     @PatchMapping("/{id}/statut")
     public ResponseEntity<TacheResponse> changerStatut(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal User currentUser) {
 
-        StatutTache nouveauStatut = StatutTache.valueOf(body.get("statut"));
-        TacheResponse response = tacheService.changerStatut(id, nouveauStatut);
+        String statutStr = body.get("statut");
+        StatutTache nouveauStatut;
+        try {
+            nouveauStatut = StatutTache.valueOf(statutStr != null ? statutStr.toUpperCase() : "");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Statut invalide. Valeurs acceptées : " + Arrays.toString(StatutTache.values()));
+        }
+        TacheResponse response = tacheService.changerStatut(id, nouveauStatut, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -146,8 +158,10 @@ public class TacheController {
      * Supprimer une tâche
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimer(@PathVariable Long id) {
-        tacheService.supprimer(id);
+    public ResponseEntity<Void> supprimer(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser) {
+        tacheService.supprimer(id, currentUser);
         return ResponseEntity.noContent().build();
     }
 }

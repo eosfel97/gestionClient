@@ -15,9 +15,10 @@ import com.gestionclient.exception.ResourceNotFoundException;
 import com.gestionclient.repository.ClientRepository;
 import com.gestionclient.repository.TacheRepository;
 import com.gestionclient.repository.UserRepository;
+import com.gestionclient.util.PaginationUtil;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -95,7 +96,7 @@ public class TacheService {
     @Transactional(readOnly = true)
     public PageResponse<TacheResponse> listerParStatut(StatutTache statut, User currentUser,
                                                        int page, int taille) {
-        Pageable pageable = PageRequest.of(page, taille, Sort.by("dateEcheance").ascending());
+        Pageable pageable = PaginationUtil.creerPageable(page, taille, Sort.by("dateEcheance").ascending());
         Page<Tache> pageTaches;
 
         if (currentUser.getRole() == Role.ADMIN) {
@@ -161,9 +162,15 @@ public class TacheService {
 
 
     @Transactional
-    public TacheResponse mettreAJour(Long id, TacheRequest request) {
+    public TacheResponse mettreAJour(Long id, TacheRequest request, User currentUser) {
         Tache tache = tacheRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tâche", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (tache.getAssigneA() == null || !tache.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez modifier que vos propres tâches");
+            }
+        }
 
         tache.setTitre(request.getTitre());
         tache.setDescription(request.getDescription());
@@ -199,9 +206,15 @@ public class TacheService {
      * Changer uniquement le statut d'une tâche (pratique pour le drag & drop kanban)
      */
     @Transactional
-    public TacheResponse changerStatut(Long id, StatutTache nouveauStatut) {
+    public TacheResponse changerStatut(Long id, StatutTache nouveauStatut, User currentUser) {
         Tache tache = tacheRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tâche", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (tache.getAssigneA() == null || !tache.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez modifier que vos propres tâches");
+            }
+        }
 
         tache.setStatut(nouveauStatut);
         Tache updated = tacheRepository.save(tache);
@@ -211,10 +224,16 @@ public class TacheService {
 
 
     @Transactional
-    public void supprimer(Long id) {
-        if (!tacheRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tâche", id);
+    public void supprimer(Long id, User currentUser) {
+        Tache tache = tacheRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tâche", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (tache.getAssigneA() == null || !tache.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous ne pouvez supprimer que vos propres tâches");
+            }
         }
+
         tacheRepository.deleteById(id);
     }
 
@@ -252,10 +271,7 @@ public class TacheService {
     // UTILITAIRES
 
     private Pageable creerPageable(int page, int taille, String tri, String direction) {
-        Sort sort = direction.equalsIgnoreCase("desc")
-                ? Sort.by(tri).descending()
-                : Sort.by(tri).ascending();
-        return PageRequest.of(page, taille, sort);
+        return PaginationUtil.creerPageable(page, taille, tri, direction);
     }
 
     private PageResponse<TacheResponse> toPageResponse(Page<Tache> page) {
