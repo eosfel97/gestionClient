@@ -42,6 +42,7 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     long countByStatut(StatutClient statut);
 
+    long countByAssigneAIdAndStatut(Long userId, StatutClient statut);
 
     long countByAssigneAId(Long userId);
 
