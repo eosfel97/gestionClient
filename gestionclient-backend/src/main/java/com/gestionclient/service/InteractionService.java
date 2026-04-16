@@ -149,6 +149,11 @@ public class InteractionService {
         if (!interaction.getClient().getId().equals(request.getClientId())) {
             Client newClient = clientRepository.findById(request.getClientId())
                     .orElseThrow(() -> new ResourceNotFoundException("Client", request.getClientId()));
+            if (currentUser.getRole() != Role.ADMIN) {
+                if (newClient.getAssigneA() == null || !newClient.getAssigneA().getId().equals(currentUser.getId())) {
+                    throw new AccessDeniedException("Vous n'avez pas accès à ce client");
+                }
+            }
             interaction.setClient(newClient);
         }
 

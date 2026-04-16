@@ -41,9 +41,9 @@ public class DashboardService {
         return DashboardResponse.builder()
                 // Compteurs clients
                 .totalClients(compterClients(currentUser, isAdmin))
-                .clientsActifs(compterClientsParStatut(StatutClient.ACTIF))
-                .clientsProspects(compterClientsParStatut(StatutClient.PROSPECT))
-                .clientsInactifs(compterClientsParStatut(StatutClient.INACTIF))
+                .clientsActifs(compterClientsParStatut(StatutClient.ACTIF, currentUser, isAdmin))
+                .clientsProspects(compterClientsParStatut(StatutClient.PROSPECT, currentUser, isAdmin))
+                .clientsInactifs(compterClientsParStatut(StatutClient.INACTIF, currentUser, isAdmin))
 
                 // Compteurs tâches
                 .totalTaches(compterTaches(currentUser, isAdmin))
@@ -77,8 +77,11 @@ public class DashboardService {
         return clientRepository.countByAssigneAId(user.getId());
     }
 
-    private long compterClientsParStatut(StatutClient statut) {
-        return clientRepository.countByStatut(statut);
+    private long compterClientsParStatut(StatutClient statut, User user, boolean isAdmin) {
+        if (isAdmin) {
+            return clientRepository.countByStatut(statut);
+        }
+        return clientRepository.countByAssigneAIdAndStatut(user.getId(), statut);
     }
 
     // Compteurs TÂCHES

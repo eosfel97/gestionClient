@@ -5,6 +5,7 @@ import com.gestionclient.dto.UserResponse;
 import com.gestionclient.entity.User;
 import com.gestionclient.enums.Role;
 import com.gestionclient.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import com.gestionclient.repository.ClientRepository;
 import com.gestionclient.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -78,10 +79,19 @@ public class AdminService {
      * Supprimer un utilisateur
      */
     @Transactional
-    public void supprimer(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Utilisateur", id);
+    public void supprimer(Long id, User currentUser) {
+        User cible = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur", id));
+
+        if (cible.getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("Vous ne pouvez pas supprimer votre propre compte");
         }
+
+        long nombreAdmins = userRepository.countByRole(Role.ADMIN);
+        if (cible.getRole() == Role.ADMIN && nombreAdmins <= 1) {
+            throw new AccessDeniedException("Impossible de supprimer le dernier administrateur");
+        }
+
         userRepository.deleteById(id);
     }
 

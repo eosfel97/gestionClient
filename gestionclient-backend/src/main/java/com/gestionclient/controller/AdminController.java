@@ -2,11 +2,13 @@ package com.gestionclient.controller;
 
 
 import com.gestionclient.dto.UserResponse;
+import com.gestionclient.entity.User;
 import com.gestionclient.enums.Role;
 import com.gestionclient.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -89,8 +91,10 @@ public class AdminController {
      * Supprimer un utilisateur
      */
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<Void> supprimer(@PathVariable Long id) {
-        adminService.supprimer(id);
+    public ResponseEntity<Void> supprimer(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser) {
+        adminService.supprimer(id, currentUser);
         return ResponseEntity.noContent().build();
     }
 }
