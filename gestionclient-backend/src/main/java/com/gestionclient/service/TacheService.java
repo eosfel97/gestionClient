@@ -42,6 +42,12 @@ public class TacheService {
         Client client = clientRepository.findById(request.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client", request.getClientId()));
 
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (client.getAssigneA() == null || !client.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous n'avez pas accès à ce client");
+            }
+        }
+
         Tache tache = Tache.builder()
                 .titre(request.getTitre())
                 .description(request.getDescription())
@@ -66,9 +72,16 @@ public class TacheService {
     }
 
     @Transactional(readOnly = true)
-    public TacheResponse trouverParId(Long id) {
+    public TacheResponse trouverParId(Long id, User currentUser) {
         Tache tache = tacheRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tâche", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (tache.getAssigneA() == null || !tache.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous n'avez pas accès à cette tâche");
+            }
+        }
+
         return toResponse(tache);
     }
 
@@ -112,9 +125,14 @@ public class TacheService {
      * Tâches d'un client spécifique
      */
     @Transactional(readOnly = true)
-    public List<TacheResponse> listerParClient(Long clientId) {
-        if (!clientRepository.existsById(clientId)) {
-            throw new ResourceNotFoundException("Client", clientId);
+    public List<TacheResponse> listerParClient(Long clientId, User currentUser) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", clientId));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (client.getAssigneA() == null || !client.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous n'avez pas accès aux tâches de ce client");
+            }
         }
 
         return tacheRepository.findByClientIdOrderByDateEcheanceAsc(clientId)

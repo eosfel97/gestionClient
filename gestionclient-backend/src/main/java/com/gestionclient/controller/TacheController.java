@@ -43,8 +43,10 @@ public class TacheController {
      * Récupérer une tâche par son ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TacheResponse> trouverParId(@PathVariable Long id) {
-        TacheResponse response = tacheService.trouverParId(id);
+    public ResponseEntity<TacheResponse> trouverParId(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser) {
+        TacheResponse response = tacheService.trouverParId(id, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -86,8 +88,10 @@ public class TacheController {
      * Tâches d'un client spécifique
      */
     @GetMapping("/client/{clientId}")
-    public ResponseEntity<List<TacheResponse>> listerParClient(@PathVariable Long clientId) {
-        List<TacheResponse> response = tacheService.listerParClient(clientId);
+    public ResponseEntity<List<TacheResponse>> listerParClient(
+            @PathVariable Long clientId,
+            @AuthenticationPrincipal User currentUser) {
+        List<TacheResponse> response = tacheService.listerParClient(clientId, currentUser);
         return ResponseEntity.ok(response);
     }
 

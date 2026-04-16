@@ -57,9 +57,16 @@ public class InteractionService {
 
 
     @Transactional(readOnly = true)
-    public InteractionResponse trouverParId(Long id) {
+    public InteractionResponse trouverParId(Long id, User currentUser) {
         Interaction interaction = interactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Interaction", id));
+
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (interaction.getAuteur() == null || !interaction.getAuteur().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous n'avez pas accès à cette interaction");
+            }
+        }
+
         return toResponse(interaction);
     }
 
@@ -67,11 +74,12 @@ public class InteractionService {
      * Timeline d'un client : toutes ses interactions triées par date décroissante
      */
     @Transactional(readOnly = true)
-    public PageResponse<InteractionResponse> listerParClient(Long clientId, int page, int taille) {
+    public PageResponse<InteractionResponse> listerParClient(Long clientId, int page, int taille,
+                                                             User currentUser) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", clientId));
 
-        if (!clientRepository.existsById(clientId)) {
-            throw new ResourceNotFoundException("Client", clientId);
-        }
+        verifierAccesClient(client, currentUser);
 
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(taille, 100));
         Page<Interaction> pageInteractions =
@@ -84,11 +92,24 @@ public class InteractionService {
      */
     @Transactional(readOnly = true)
     public PageResponse<InteractionResponse> listerParClientEtType(Long clientId, TypeInteraction type,
-                                                                   int page, int taille) {
+                                                                   int page, int taille, User currentUser) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", clientId));
+
+        verifierAccesClient(client, currentUser);
+
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(taille, 100));
         Page<Interaction> pageInteractions =
                 interactionRepository.findByClientIdAndType(clientId, type, pageable);
         return toPageResponse(pageInteractions);
+    }
+
+    private void verifierAccesClient(Client client, User currentUser) {
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (client.getAssigneA() == null || !client.getAssigneA().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Vous n'avez pas accès aux interactions de ce client");
+            }
+        }
     }
 
     /**

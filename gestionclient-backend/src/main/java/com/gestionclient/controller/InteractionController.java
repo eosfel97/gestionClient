@@ -43,8 +43,10 @@ public class InteractionController {
      * Récupérer une interaction par son ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<InteractionResponse> trouverParId(@PathVariable Long id) {
-        InteractionResponse response = interactionService.trouverParId(id);
+    public ResponseEntity<InteractionResponse> trouverParId(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser) {
+        InteractionResponse response = interactionService.trouverParId(id, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -56,11 +58,12 @@ public class InteractionController {
     public ResponseEntity<PageResponse<InteractionResponse>> listerParClient(
             @PathVariable Long clientId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int taille) {
+            @RequestParam(defaultValue = "10") int taille,
+            @AuthenticationPrincipal User currentUser) {
 
         taille = Math.min(taille, 100);
         PageResponse<InteractionResponse> response =
-                interactionService.listerParClient(clientId, page, taille);
+                interactionService.listerParClient(clientId, page, taille, currentUser);
         return ResponseEntity.ok(response);
     }
 
@@ -73,11 +76,12 @@ public class InteractionController {
             @PathVariable Long clientId,
             @PathVariable TypeInteraction type,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int taille) {
+            @RequestParam(defaultValue = "10") int taille,
+            @AuthenticationPrincipal User currentUser) {
 
         taille = Math.min(taille, 100);
         PageResponse<InteractionResponse> response =
-                interactionService.listerParClientEtType(clientId, type, page, taille);
+                interactionService.listerParClientEtType(clientId, type, page, taille, currentUser);
         return ResponseEntity.ok(response);
     }
 

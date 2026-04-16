@@ -5,6 +5,7 @@ import com.gestionclient.dto.AuthResponse;
 import com.gestionclient.dto.LoginRequest;
 import com.gestionclient.dto.RegisterRequest;
 import com.gestionclient.entity.User;
+import com.gestionclient.enums.Role;
 import com.gestionclient.exception.EmailDejaUtiliseException;
 import com.gestionclient.repository.UserRepository;
 import com.gestionclient.security.JwtService;
@@ -38,7 +39,7 @@ public class AuthService {
                 .prenom(request.getPrenom())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(Role.COMMERCIAL)
                 .actif(true)
                 .build();
 

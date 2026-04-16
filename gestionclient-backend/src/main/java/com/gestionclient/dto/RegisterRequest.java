@@ -1,10 +1,8 @@
 package com.gestionclient.dto;
 
 
-import com.gestionclient.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -35,7 +33,4 @@ public class RegisterRequest {
         message = "Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre"
     )
     private String password;
-
-    @NotNull(message = "Le rôle est obligatoire")
-    private Role role;
 }
