@@ -65,13 +65,6 @@ GestionClient est un CRM permettant de :
 
 ## 🚀 Lancement rapide
 
-## 🔑 Comptes de démonstration
-
-| Rôle | Email | Mot de passe |
-|------|-------|-------------|
-| Admin | admin@gestionclient.com | admin123 |
-| Commercial | commercial@gestionclient.com | commercial123 |
-
 ### Avec Docker (recommandé)
 
 ```bash
