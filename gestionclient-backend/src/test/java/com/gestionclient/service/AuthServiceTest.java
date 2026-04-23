@@ -69,7 +69,6 @@ class AuthServiceTest {
                 .prenom("Jean")
                 .email("jean@test.com")
                 .password("password123")
-                .role(Role.COMMERCIAL)
                 .build();
 
         loginRequest = LoginRequest.builder()

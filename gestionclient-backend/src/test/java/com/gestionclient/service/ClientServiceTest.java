@@ -58,15 +58,6 @@ class ClientServiceTest {
 
     @BeforeEach
     void setUp() {
-        User admin = User.builder()
-                .id(1L)
-                .nom("Admin")
-                .prenom("Super")
-                .email("admin@test.com")
-                .role(Role.ADMIN)
-                .actif(true)
-                .build();
-
         commercial = User.builder()
                 .id(2L)
                 .nom("Dupont")

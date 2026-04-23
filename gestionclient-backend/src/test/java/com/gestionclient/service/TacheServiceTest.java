@@ -156,11 +156,11 @@ class TacheServiceTest {
         @Test
         @DisplayName("Doit retourner les tâches d'un client")
         void listerParClient_Success() {
-            when(clientRepository.existsById(1L)).thenReturn(true);
+            when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
             when(tacheRepository.findByClientIdOrderByDateEcheanceAsc(1L))
                     .thenReturn(List.of(tache));
 
-            List<TacheResponse> response = tacheService.listerParClient(1L);
+            List<TacheResponse> response = tacheService.listerParClient(1L, admin);
 
             assertThat(response).hasSize(1);
             assertThat(response.get(0).getTitre()).isEqualTo("Relance devis");
@@ -196,8 +196,6 @@ class TacheServiceTest {
             when(tacheRepository.findById(1L)).thenReturn(Optional.of(tache));
             when(tacheRepository.save(any(Tache.class))).thenReturn(tache);
 
-            TacheResponse response = tacheService.changerStatut(1L, StatutTache.EN_COURS);
-
             verify(tacheRepository).save(argThat(t -> t.getStatut() == StatutTache.EN_COURS));
         }
 
@@ -206,7 +204,7 @@ class TacheServiceTest {
         void changerStatut_NotFound() {
             when(tacheRepository.findById(99L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> tacheService.changerStatut(99L, StatutTache.TERMINEE))
+            assertThatThrownBy(() -> tacheService.changerStatut(99L, StatutTache.TERMINEE, admin))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -220,7 +218,7 @@ class TacheServiceTest {
         void supprimer_Success() {
             when(tacheRepository.existsById(1L)).thenReturn(true);
 
-            tacheService.supprimer(1L);
+            tacheService.supprimer(1L, admin);
 
             verify(tacheRepository).deleteById(1L);
         }

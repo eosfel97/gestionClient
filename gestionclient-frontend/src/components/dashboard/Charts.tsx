@@ -35,7 +35,7 @@ export function DonutChart({ data, title, delay = 0 }: DonutChartProps) {
         <h3 className="text-sm font-semibold text-text-primary mb-4">{title}</h3>
         <div className="flex items-center gap-6">
           <div className="w-36 h-36 flex-shrink-0">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={data}
@@ -105,7 +105,7 @@ export function BarChartWidget({ data, title, delay = 0 }: BarChartProps) {
       <Card className="h-full">
         <h3 className="text-sm font-semibold text-text-primary mb-4">{title}</h3>
         <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart data={data} barSize={32}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
               <XAxis
