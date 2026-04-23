@@ -56,8 +56,8 @@ export default function Navbar() {
     isLast: i === segments.length - 1,
   }));
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/login");
   };
 

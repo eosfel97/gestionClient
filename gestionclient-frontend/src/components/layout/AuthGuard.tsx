@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth";
 
@@ -11,16 +11,14 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const router = useRouter();
-  const { isAuthenticated, user, hydrate } = useAuthStore();
-  const [isReady, setIsReady] = useState(false);
+  const { isAuthenticated, user, hydrate, hydrated } = useAuthStore();
 
   useEffect(() => {
     hydrate();
-    setIsReady(true);
   }, [hydrate]);
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!hydrated) return;
 
     if (!isAuthenticated) {
       router.push("/login");
@@ -30,9 +28,9 @@ export default function AuthGuard({ children, requiredRole }: AuthGuardProps) {
     if (requiredRole && user?.role !== requiredRole) {
       router.push("/dashboard");
     }
-  }, [isReady, isAuthenticated, user, requiredRole, router]);
+  }, [hydrated, isAuthenticated, user, requiredRole, router]);
 
-  if (!isReady || !isAuthenticated) {
+  if (!hydrated || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">

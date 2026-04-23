@@ -55,6 +55,9 @@ export interface Client {
   notes?: string;
   dateCreation: string;
   dateModification: string;
+  assigneAId?: number;
+  assigneANom?: string;
+  assigneAPrenom?: string;
 }
 
 export interface ClientFormData {

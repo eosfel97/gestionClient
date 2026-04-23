@@ -1,67 +1,68 @@
 import { create } from "zustand";
 import { User } from "@/types";
+import api from "@/lib/api/axios";
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  hydrate: () => void;
+  hydrated: boolean;
+  login: (user: User) => void;
+  logout: () => Promise<void>;
+  hydrate: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  token: null,
   isAuthenticated: false,
   isAdmin: false,
+  hydrated: false,
 
-  login: (token: string, user: User) => {
-    localStorage.setItem("token", token);
+  login: (user: User) => {
     localStorage.setItem("user", JSON.stringify(user));
-    set({
-      user,
-      token,
-      isAuthenticated: true,
-      isAdmin: user.role === "ADMIN",
-    });
+    set({ user, isAuthenticated: true, isAdmin: user.role === "ADMIN", hydrated: true });
   },
 
-  logout: () => {
-    localStorage.removeItem("token");
+  logout: async () => {
+    try {
+      await api.post("/api/auth/logout");
+    } catch {
+      // Le cookie sera supprimé même si la requête échoue côté réseau
+    }
     localStorage.removeItem("user");
-    set({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isAdmin: false,
-    });
+    set({ user: null, isAuthenticated: false, isAdmin: false, hydrated: false });
   },
 
-  hydrate: () => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-    if (token && userStr) {
+  hydrate: async () => {
+    if (get().hydrated) return;
+
+    // Pré-remplissage rapide depuis localStorage pour éviter le flash
+    const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    if (userStr) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.exp * 1000 < Date.now()) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          return;
-        }
-        const user: User = JSON.parse(userStr);
-        set({
-          user,
-          token,
-          isAuthenticated: true,
-          isAdmin: user.role === "ADMIN",
-        });
+        const cached: User = JSON.parse(userStr);
+        set({ user: cached, isAuthenticated: true, isAdmin: cached.role === "ADMIN" });
       } catch {
-        localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
+    }
+
+    // Vérification réelle auprès du backend (détecte token expiré + rôle réel)
+    try {
+      const response = await api.get("/api/profil");
+      const data = response.data;
+      const user: User = {
+        userId: data.id ?? data.userId,
+        nom: data.nom,
+        prenom: data.prenom,
+        email: data.email,
+        role: data.role,
+      };
+      localStorage.setItem("user", JSON.stringify(user));
+      set({ user, isAuthenticated: true, isAdmin: user.role === "ADMIN", hydrated: true });
+    } catch {
+      localStorage.removeItem("user");
+      set({ user: null, isAuthenticated: false, isAdmin: false, hydrated: true });
     }
   },
 }));

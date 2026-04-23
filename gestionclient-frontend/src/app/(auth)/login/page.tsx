@@ -31,7 +31,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await authApi.login(data);
-      login(response.token, {
+      login({
         userId: response.userId,
         nom: response.nom,
         prenom: response.prenom,

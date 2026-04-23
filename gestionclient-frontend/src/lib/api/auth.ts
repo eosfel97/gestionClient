@@ -10,4 +10,8 @@ export const authApi = {
   register: async (data: RegisterRequest): Promise<void> => {
     await api.post("/api/auth/register", data);
   },
+
+  logout: async (): Promise<void> => {
+    await api.post("/api/auth/logout");
+  },
 };

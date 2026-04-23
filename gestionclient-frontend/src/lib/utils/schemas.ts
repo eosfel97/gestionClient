@@ -25,6 +25,7 @@ export const clientSchema = z.object({
   statut: z.enum(["PROSPECT", "ACTIF", "INACTIF"]),
   adresse: z.string().optional(),
   notes: z.string().optional(),
+  assigneAId: z.number().optional(),
 });
 
 export const interactionSchema = z.object({
